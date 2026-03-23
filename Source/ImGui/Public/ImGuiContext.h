@@ -18,6 +18,7 @@ struct ImGuiContext;
 struct ImGuiViewport;
 struct ImPlotContext;
 struct ImTextureData;
+typedef int ImGuiMouseCursor;
 
 struct IMGUI_API FImGuiViewportData
 {
@@ -65,6 +66,8 @@ public:
 	operator ImPlotContext*() const;
 #endif
 
+	ImGuiMouseCursor GetLastMouseCursor() const;
+
 private:
 	void Initialize();
 
@@ -95,6 +98,8 @@ private:
 #endif
 
 	TArray<FTextureRef> Textures;
+
+	ImGuiMouseCursor LastMouseCursor = 0;
 };
 
 #endif // #ifndef IMGUI_DISABLE
