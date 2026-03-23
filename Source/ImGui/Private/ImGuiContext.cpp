@@ -454,7 +454,7 @@ FImGuiContext::~FImGuiContext()
 }
 
 #if WITH_NETIMGUI
-bool FImGuiContext::Listen(uint16 Port)
+bool FImGuiContext::Listen(uint32 Port)
 {
 	ImGui::FScopedContext ScopedContext(AsShared());
 
@@ -472,13 +472,10 @@ bool FImGuiContext::Listen(uint16 Port)
 		ClientName << " (" << PieSessionId << ")";
 	}
 
-	NetImgui::ConnectFromApp(ClientName.ToString(), Port);
-	bIsRemote = true;
-
-	return true;
+	return NetImgui::ConnectFromApp(ClientName.ToString(), Port);
 }
 
-bool FImGuiContext::Connect(const FString& Host, int16 Port)
+bool FImGuiContext::Connect(const FString& Host, uint32 Port)
 {
 	ImGui::FScopedContext ScopedContext(AsShared());
 
@@ -496,19 +493,12 @@ bool FImGuiContext::Connect(const FString& Host, int16 Port)
 		ClientName << " (" << PieSessionId << ")";
 	}
 
-	NetImgui::ConnectToApp(ClientName.ToString(), TCHAR_TO_ANSI(*Host), Port);
-	bIsRemote = true;
-
-	return true;
+	return NetImgui::ConnectToApp(ClientName.ToString(), TCHAR_TO_ANSI(*Host), Port);
 }
 
 void FImGuiContext::Disconnect()
 {
-	if (bIsRemote)
-	{
-		NetImgui::Disconnect();
-		bIsRemote = false;
-	}
+	NetImgui::Disconnect();
 }
 #endif
 
@@ -680,13 +670,6 @@ void FImGuiContext::BeginFrame()
 		return;
 	}
 
-#if WITH_NETIMGUI
-	if (bIsRemote && !NetImgui::IsConnected())
-	{
-		return;
-	}
-#endif
-
 	ImGui::FScopedContext ScopedContext(AsShared());
 
 	ImGuiIO& IO = ImGui::GetIO();
@@ -707,7 +690,6 @@ void FImGuiContext::EndFrame()
 	ImGui::FScopedContext ScopedContext(AsShared());
 
 	ImGui::Render();
-	ImGui::UpdatePlatformWindows();
 
 	for (ImTextureData* TextureData : ImGui::GetPlatformIO().Textures)
 	{
@@ -725,11 +707,11 @@ void FImGuiContext::EndFrame()
 		}
 	}
 
-#if WITH_NETIMGUI
-	if (!bIsRemote)
-#endif
+	ImGui_RenderWindow(ImGui::GetMainViewport(), nullptr);
+
+	if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
 	{
-		ImGui_RenderWindow(ImGui::GetMainViewport(), nullptr);
+		ImGui::UpdatePlatformWindows();
 		ImGui::RenderPlatformWindowsDefault();
 	}
 }
