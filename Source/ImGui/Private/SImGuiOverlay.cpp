@@ -450,7 +450,7 @@ FReply SImGuiOverlay::OnKeyChar(const FGeometry& MyGeometry, const FCharacterEve
 
 	ImGuiIO& IO = ImGui::GetIO();
 
-	IO.AddInputCharacter(CharCast<ANSICHAR>(Event.GetCharacter()));
+	IO.AddInputCharacter(Event.GetCharacter());
 
 	return IO.WantTextInput ? FReply::Handled() : FReply::Unhandled();
 }
