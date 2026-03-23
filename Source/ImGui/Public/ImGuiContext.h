@@ -9,6 +9,7 @@
 
 class SWindow;
 class SImGuiOverlay;
+class SViewport;
 struct FDisplayMetrics;
 struct FSlateBrush;
 struct ImGuiContext;
@@ -23,6 +24,7 @@ struct IMGUI_API FImGuiViewportData
 
 	TWeakPtr<SWindow> Window = nullptr;
 	TWeakPtr<SImGuiOverlay> Overlay = nullptr;
+	TWeakPtr<SViewport> Viewport = nullptr;
 };
 
 class IMGUI_API FImGuiContext : public TSharedFromThis<FImGuiContext>
