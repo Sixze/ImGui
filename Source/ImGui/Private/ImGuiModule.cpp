@@ -149,6 +149,7 @@ void FImGuiModule::OnViewportCreated() const
 
 		ViewportData->Window = GameViewport->GetWindow();
 		ViewportData->Overlay = Overlay;
+		ViewportData->Viewport = GameViewport->GetGameViewportWidget();
 
 		GameViewport->AddViewportWidgetContent(Overlay, TNumericLimits<int32>::Max());
 	}
@@ -194,6 +195,7 @@ TSharedPtr<FImGuiContext> FImGuiModule::CreateViewportContext(UGameViewportClien
 
 		ViewportData->Window = GameViewport->GetWindow();
 		ViewportData->Overlay = Overlay;
+		ViewportData->Viewport = GameViewport->GetGameViewportWidget();
 
 		GameViewport->AddViewportWidgetContent(Overlay, TNumericLimits<int32>::Max());
 	}

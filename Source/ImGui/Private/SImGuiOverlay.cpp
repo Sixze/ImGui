@@ -1,8 +1,10 @@
 ﻿#include "SImGuiOverlay.h"
 
 #include <Framework/Application/SlateApplication.h>
+#include <Framework/Application/SlateUser.h>
 
 #include "ImGuiContext.h"
+#include "Widgets/SViewport.h"
 
 FImGuiDrawList::FImGuiDrawList(ImDrawList* Source)
 {
@@ -293,7 +295,24 @@ public:
 		if (Event.IsKeyEvent())
 		{
 			const FImGuiViewportData* FocusedViewport = FindViewportForWindow(LastFocusedWindow.Pin());
+
+#if PLATFORM_DESKTOP
+			if (FocusedViewport == nullptr)
+			{
+				return false;
+			}
+
+			const TSharedPtr<FSlateUser> SlateUser = SlateApp.GetUser(Event);
+			const TSharedPtr<SViewport> Viewport = FocusedViewport->Viewport.Pin();
+
+			if (SlateUser.IsValid() && Viewport.IsValid())
+			{
+				// Ignore input if the game viewport is not in the focus path.
+				return SlateUser->IsWidgetInFocusPath(Viewport);
+			}
+#else
 			return FocusedViewport != nullptr;
+#endif
 		}
 
 		return true;
