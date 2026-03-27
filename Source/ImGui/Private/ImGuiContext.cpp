@@ -13,7 +13,6 @@
 #include <Widgets/SWindow.h>
 
 #if WITH_ENGINE
-#include <ImageUtils.h>
 #include <RHITypes.h>
 #include <UObject/Package.h>
 #else
