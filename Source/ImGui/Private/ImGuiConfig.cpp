@@ -6,6 +6,7 @@
 #include <Framework/Commands/InputChord.h>
 #include <GenericPlatform/ICursor.h>
 #include <HAL/PlatformFileManager.h>
+#include <Misc/Paths.h>
 
 #if WITH_ENGINE
 #include <Engine/Texture2D.h>
@@ -64,7 +65,20 @@ ImFileHandle ImFileOpen(const char* FileName, const char* Mode)
 
 	if (bWrite || bAppend || bExtended)
 	{
-		return PlatformFile.OpenWrite(UTF8_TO_TCHAR(FileName), bAppend, bExtended);
+		const FString FilePath = UTF8_TO_TCHAR(FileName);
+
+		if (bWrite || bAppend)
+		{
+			const FString Directory = FPaths::GetPath(FilePath);
+			if (!Directory.IsEmpty())
+			{
+				// IPlatformFile::OpenWrite() does not create missing parent directories, and it fails if the
+				// directory does not exist, so we create the directory explicitly before opening the file.
+				PlatformFile.CreateDirectoryTree(*Directory);
+			}
+		}
+
+		return PlatformFile.OpenWrite(*FilePath, bAppend, bExtended);
 	}
 
 	if (bRead)
