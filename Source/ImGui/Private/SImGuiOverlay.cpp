@@ -174,22 +174,12 @@ public:
 
 		ImGuiIO& IO = ImGui::GetIO();
 
-		const TSharedPtr<FSlateUser> SlateUser = SlateApp.GetUser(Event.GetUserIndex());
-		if (SlateUser.IsValid())
+		const bool bCursorOverViewportOverlay = IsCursorOverViewportOverlay(Event);
+
+		if (!bCursorOverViewportOverlay && !ImGui::IsMouseDown(0))
 		{
-			const FImGuiViewportData* TargetViewport = nullptr;
-
-			if (!SlateUser->HasCapture(Event.GetPointerIndex()))
-			{
-				const FWeakWidgetPath LastWidgetsUnderPointer = SlateUser->GetLastWidgetsUnderPointer(Event.GetPointerIndex());
-				TargetViewport = FindViewportForWindow(LastWidgetsUnderPointer.Window.Pin());
-			}
-
-			if (!TargetViewport && !ImGui::IsMouseDown(0))
-			{
-				IO.AddMousePosEvent(-FLT_MAX, -FLT_MAX);
-				return false;
-			}
+			IO.AddMousePosEvent(-FLT_MAX, -FLT_MAX);
+			return false;
 		}
 
 		FVector2f Position = Event.GetScreenSpacePosition();
@@ -201,7 +191,7 @@ public:
 
 		IO.AddMousePosEvent(Position.X, Position.Y);
 
-		return IO.WantCaptureMouse;
+		return bCursorOverViewportOverlay && IO.WantCaptureMouse;
 	}
 
 	virtual bool HandleMouseButtonDownEvent(FSlateApplication& SlateApp, const FPointerEvent& Event) override
@@ -227,6 +217,16 @@ public:
 		else if (Button == EKeys::MiddleMouseButton)
 		{
 			IO.AddMouseButtonEvent(ImGuiMouseButton_Middle, true);
+		}
+
+		// The click is forwarded even when it lands outside the overlays, so a regular popup
+		// closes on a press anywhere, and the closing click stays owned by Dear ImGui. Only a
+		// modal blocking beyond the overlay it dims leaves the click to Slate, because Dear
+		// ImGui ignores it on its own: it lands on none of the windows behind the modal.
+
+		if (IO.WantCaptureMouseUnlessPopupClose && !IsCursorOverViewportOverlay(Event))
+		{
+			return false;
 		}
 
 		return IO.WantCaptureMouse;
@@ -275,6 +275,11 @@ public:
 			return false;
 		}
 
+		if (!IsCursorOverViewportOverlay(Event))
+		{
+			return false;
+		}
+
 		ImGuiIO& IO = ImGui::GetIO();
 
 		IO.AddMouseWheelEvent(0.0f, Event.GetWheelDelta());
@@ -318,6 +323,27 @@ public:
 		}
 
 		return nullptr;
+	}
+
+	// Returns true when the cursor is within the bounds of one of the context viewports' overlays, the only
+	// area this input processor may consume input in. Dear ImGui keeps WantCaptureMouse raised for the entire
+	// application while any popup is open, so without this check an open modal would consume clicks across every
+	// window of the application. Overlay bounds are tested rather than hosting window ones, because the window
+	// of a game viewport spans the whole editor window, while the modal only dims and blocks the viewport itself.
+	static bool IsCursorOverViewportOverlay(const FPointerEvent& Event)
+	{
+		for (ImGuiViewport* Viewport : ImGui::GetPlatformIO().Viewports)
+		{
+			const FImGuiViewportData* ViewportData = FImGuiViewportData::GetOrCreate(Viewport);
+			const TSharedPtr<SImGuiOverlay> Overlay = ViewportData->Overlay.Pin();
+
+			if (Overlay.IsValid() && Overlay->GetTickSpaceGeometry().GetLayoutBoundingRect().ContainsPoint(Event.GetScreenSpacePosition()))
+			{
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 private:
