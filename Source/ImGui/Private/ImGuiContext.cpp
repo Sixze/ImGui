@@ -147,13 +147,19 @@ static void ImGui_SetWindowPos(ImGuiViewport* Viewport, ImVec2 Pos)
 
 static ImVec2 ImGui_GetWindowPos(ImGuiViewport* Viewport)
 {
-	const FImGuiViewportData* ViewportData = FImGuiViewportData::GetOrCreate(Viewport);
+	FImGuiViewportData* ViewportData = FImGuiViewportData::GetOrCreate(Viewport);
 	if (ViewportData)
 	{
 		if (const TSharedPtr<SImGuiOverlay> Overlay = ViewportData->Overlay.Pin())
 		{
-			return Overlay->GetTickSpaceGeometry().GetAbsolutePosition();
+			ViewportData->CachedOverlayPos = Overlay->GetTickSpaceGeometry().GetAbsolutePosition();
 		}
+
+		// The overlay is destroyed with the game viewport before the context dies: falling back to
+		// the last valid geometry prevents the main viewport from collapsing to zero, which would
+		// translate every hosted window into screen-origin space right before the settings are saved.
+
+		return ViewportData->CachedOverlayPos;
 	}
 
 	return FVector2f::ZeroVector;
@@ -173,13 +179,16 @@ static void ImGui_SetWindowSize(ImGuiViewport* Viewport, ImVec2 Size)
 
 static ImVec2 ImGui_GetWindowSize(ImGuiViewport* Viewport)
 {
-	const FImGuiViewportData* ViewportData = FImGuiViewportData::GetOrCreate(Viewport);
+	FImGuiViewportData* ViewportData = FImGuiViewportData::GetOrCreate(Viewport);
 	if (ViewportData)
 	{
 		if (const TSharedPtr<SImGuiOverlay> Overlay = ViewportData->Overlay.Pin())
 		{
-			return Overlay->GetTickSpaceGeometry().GetAbsoluteSize();
+			ViewportData->CachedOverlaySize = Overlay->GetTickSpaceGeometry().GetAbsoluteSize();
 		}
+
+		// The same last valid geometry fallback as in ImGui_GetWindowPos(), for the size.
+		return ViewportData->CachedOverlaySize;
 	}
 
 	return FVector2f::ZeroVector;
