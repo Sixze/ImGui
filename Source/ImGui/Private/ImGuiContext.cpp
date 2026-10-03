@@ -712,8 +712,10 @@ void FImGuiContext::BeginFrame()
 	// Skip rendering while DisplaySize is invalid (i.e. SImGuiOverlay has no valid geometry yet), because
 	// restoring windows from the .ini would then place them at wrong absolute positions. This only applies to
 	// the first frame; otherwise SImGuiWindow left behind after PIE ends would remain alive forever.
+	// Headless applications such as dedicated servers have no overlay at all and stay at a zero DisplaySize;
+	// there the size comes from NetImgui remote sessions instead, so frames must always run.
 
-	if (Context->FrameCount > 0 || (IO.DisplaySize.x > 0.0f && IO.DisplaySize.y > 0.0f))
+	if (Context->FrameCount > 0 || (IO.DisplaySize.x > 0.0f && IO.DisplaySize.y > 0.0f) || !FSlateApplication::IsInitialized())
 	{
 		ImGui::NewFrame();
 	}
