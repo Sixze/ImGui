@@ -562,16 +562,6 @@ ImGuiMouseCursor FImGuiContext::GetLastMouseCursor() const
 	return LastMouseCursor;
 }
 
-bool FImGuiContext::ShouldClearInputOnFocusLost() const
-{
-	return bClearInputOnFocusLost;
-}
-
-void FImGuiContext::SetClearInputOnFocusLost(bool bClearInput)
-{
-	bClearInputOnFocusLost = bClearInput;
-}
-
 void FImGuiContext::OnDisplayMetricsChanged(const FDisplayMetrics& DisplayMetrics)
 {
 	ImGui::FScopedContext ScopedContext(AsShared());
