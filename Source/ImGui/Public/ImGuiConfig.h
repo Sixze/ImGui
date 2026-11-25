@@ -16,6 +16,7 @@ struct FInputChord;
 struct FKey;
 struct FSlateBrush;
 enum ImGuiKey : int;
+typedef int ImGuiMouseButton;
 typedef int ImGuiKeyChord;
 typedef int ImGuiMouseCursor;
 struct ImGuiContext;
@@ -131,6 +132,9 @@ namespace ImGui
 
 	/// Converts from ImGui to UE key chord
 	IMGUI_API FInputChord ConvertKeyChord(const ImGuiKeyChord Chord);
+
+	/// Converts from UE to ImGui mouse button
+    IMGUI_API ImGuiMouseButton ConvertMouseButton(const FKey& Key);
 
 	/// Converts from ImGui to UE mouse cursor
 	IMGUI_API EMouseCursor::Type ConvertMouseCursor(const ImGuiMouseCursor Cursor);
